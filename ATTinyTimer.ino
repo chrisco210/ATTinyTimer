@@ -38,10 +38,6 @@ void cycle() {
 //True for on, false for off
 void setState(bool state) {
   currentState = state;
-  if(state) {
-    digitalWrite(PIN_VOUT, false);
-  } else {
-    digitalWrite(PIN_VOUT, true);
-  }
+  digitalWrite(PIN_VOUT, !state);
 }
 
