@@ -1,5 +1,5 @@
 //How long you want the interval to be, positive integer in seconds
-#define INTERVAL 150
+#define INTERVAL 3600
 
 #define PIN_VOUT 0
 #define PIN_DONE 3
