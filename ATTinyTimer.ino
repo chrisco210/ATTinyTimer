@@ -2,7 +2,7 @@
 //How long you want the interval to be, positive integer in seconds
 #define INTERVAL 30
 
-//For debug mode, uncomment all extra digitalWrites().  This will allow you to connect debug leds to pins 1, 3, and 4
+//For debug mode, uncomment all extra digitalWrites().  This will allow you to connect debug leds to pins 1, 3, and 4 
 
 //Do not change these
 #define PIN_VOUT 0
