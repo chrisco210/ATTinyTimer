@@ -2,11 +2,11 @@
 //How long you want the interval to be, positive integer in seconds
 #define INTERVAL 30
 
-//For debug mode, uncomment all extra digitalWrites().  This will allow you to connect debug leds to pins 1, 3, and 4 
-
-//Do not change these
 #define PIN_VOUT 0
 #define PIN_DONE 2
+#define PIN_CFG_EN 1
+#define PIN_CFG_OUT 3
+#define PIN_CFG_IND 4
 
 //Time elapsed since last reset
 unsigned long elapsedTime = 0;
@@ -14,21 +14,18 @@ unsigned long elapsedTime = 0;
 volatile boolean intRec = false;   
 
 
-typedef enum { STATE_SYTEM_ON, STATE_SYTEM_OFF } state_t;
+typedef enum { STATE_SYSTEM_ON, STATE_SYSTEM_OFF, STATE_SYSTEM_CFG } state_t;
 
 //True for on, false for off
-state_t currentState = STATE_SYTEM_ON;
-state_t nextState = STATE_SYTEM_ON;
+state_t currentState = STATE_SYSTEM_ON;
+state_t nextState = STATE_SYSTEM_ON;
 
 void setup() {
   //Main vout pin
   pinMode(PIN_VOUT, OUTPUT);
-  //pinMode(1, OUTPUT);
-  //pinMode(4, OUTPUT);
-
-  
-  
   pinMode(PIN_DONE, INPUT_PULLUP);
+  digitalWrite(PIN_CFG_OUT, LOW);
+  pinMode(PIN_CFG_OUT, OUTPUT);
   delay(500);
 
   //MCUCR = (MCUCR & ~0x3);
@@ -48,21 +45,28 @@ void loop() {
 void handleState() {
   nextState = currentState;
   switch(currentState) {
-    case STATE_SYTEM_ON:
-      if(elapsedTime > INTERVAL) {
-        //digitalWrite(1, HIGH);
-        nextState = STATE_SYTEM_OFF;
+    case STATE_SYSTEM_ON:
+      if(digitalRead(PIN_CFG_EN) == HIGH) {
+        nextState = STATE_SYSTEM_OFF;
+      } else if(elapsedTime > INTERVAL) {
+        nextState = STATE_SYSTEM_OFF;
       } else if(intRec) {
-        nextState = STATE_SYTEM_OFF;
+        nextState = STATE_SYSTEM_OFF;
         //digitalWrite(4, HIGH);
       }
       break;
-    case STATE_SYTEM_OFF:
-      if(elapsedTime > INTERVAL) {
-        nextState = STATE_SYTEM_ON;
+    case STATE_SYSTEM_OFF:
+      if(digitalRead(PIN_CFG_EN) == HIGH) {
+        
+        nextState = STATE_SYSTEM_CFG;
+      } else if(elapsedTime > INTERVAL) {
+        nextState = STATE_SYSTEM_ON;
         elapsedTime = 0;
-        //digitalWrite(1, LOW);
-        //digitalWrite(4, LOW);
+      }
+      break;
+    case STATE_SYSTEM_CFG:
+      if(intRec) {
+        nextState = STATE_SYSTEM_ON;
       }
       break;
   }
@@ -71,19 +75,17 @@ void handleState() {
 }
 
 void act() {
-  //digitalWrite(3, HIGH);
-  if(currentState == STATE_SYTEM_ON) {
+  if(currentState == STATE_SYSTEM_CFG) {
+    digitalWrite(PIN_CFG_OUT, HIGH);
+  } else if(currentState == STATE_SYSTEM_ON) {
     digitalWrite(PIN_VOUT, LOW);
   } else {
     digitalWrite(PIN_VOUT, HIGH);
   }
-  //delay(5);
-  //digitalWrite(3, LOW);
 }
 
 
 //Called on interupts
 ISR(INT0_vect) {
   intRec = true;
-  //digitalWrite(4, HIGH);
 }
